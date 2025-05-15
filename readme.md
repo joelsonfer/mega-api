@@ -22,6 +22,17 @@ API para consumo dos dados do Senior Mega
   + `limit`: quantidade de fornecedores por p gina (padrão: 10)
 * `GET /solicitacoes/:id`: busca uma solicitação pelo código
 
+### Tipos de Classes
+
+* `GET /tipos-classes`: lista todos os tipos de classes com os seguintes parâmetros:
+  + `page`: número da página da lista de tipos de classes (padrão: 1)
+  + `limit`: quantidade de tipos de classes por página (padrão: 10)
+
+### Operações
+
+* `GET /operacoes`: lista todas as operações com os seguintes parâmetros:
+  + `page`: número da página da lista de operações (padrão: 1)
+  + `limit`: quantidade de operações por página (padrão: 10)
 
 ## Configuração
 

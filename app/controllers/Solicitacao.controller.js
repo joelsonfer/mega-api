@@ -123,6 +123,8 @@ async function carregarItens(row, connection) {
                it.SOI_RE_QUANTIDADESOL     as quantidade,
                it.SOI_ST_ESPECIFICACAO     as especificacao,
                it.SOI_ST_MOTIVOSOLICITACAO as motivo_solicitacao,
+               it.APL_IN_CODIGO            as operacao,
+               it.TPC_ST_CLASSE            as tipo_classe,
                CASE it.SOI_CH_STATUS
                    WHEN 'T' THEN 'APROVAÇÃO_TECNICA'
                    WHEN 'E' THEN 'APROVAÇÃO_ESTOQUE'

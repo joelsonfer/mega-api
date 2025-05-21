@@ -5,8 +5,12 @@ oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 oracledb.initOracleClient({libDir: dbConfig.libDir});
 
 async function getConnection() {
-
-    return await oracledb.getConnection(dbConfig);
+    try {
+        return await oracledb.getConnection(dbConfig);
+    } catch (err) {
+        console.error('Erro ao conectar ao banco:', err);
+        throw err;
+    }
 }
 
 module.exports = { getConnection };

@@ -1,5 +1,56 @@
 const {getConnection} = require('../database/Oracle.database');
 
+
+function montarFiltroSolicitacoes(queryParams) {
+    const whereClauses = [];
+    const binds = {};
+
+    const {
+        dataAlteracao,
+        aprovado,
+        id,
+        numero,
+        filial
+    } = queryParams;
+
+    if (dataAlteracao) {
+        whereClauses.push('sc.SOL_DT_EMISSAO >= TO_TIMESTAMP(:dataAlteracao, \'YYYY-MM-DD HH24:MI:SS\')');
+        binds.dataAlteracao = dataAlteracao;
+    }
+
+    if (aprovado !== undefined) {
+        whereClauses.push('sc.SOL_BO_APROVAAPPROVO = :aprovado');
+        binds.aprovado = aprovado === 'true' || aprovado === 'S' ? 'S' : 'N';
+    }
+
+    if (id) {
+        whereClauses.push('sc.SOL_IN_CODIGO = :id');
+        binds.id = id;
+    }
+
+    if (numero) {
+        whereClauses.push('sc.SOL_IN_NUMRM = :numero');
+        binds.numero = numero;
+    }
+
+    if (filial) {
+        whereClauses.push('sc.FIL_IN_CODIGO = :filial');
+        binds.filial = filial;
+    }
+
+    if (whereClauses.length === 0) {
+        return {
+            where: '',
+            binds
+        }
+    }
+
+    return {
+        where: `where ${whereClauses.join(' AND ')}`,
+        binds
+    };
+}
+
 async function buscarSolicitacaoPorId(req, res) {
     const {filial, numero} = req.params;
     let connection;
@@ -26,7 +77,7 @@ async function buscarSolicitacaoPorId(req, res) {
             from EST_SOLICITACAO sc
                      left join EST_INTEGRASOLIC origem on sc.SOL_CH_ORIGEM = origem.SOL_CH_ORIGEM
             where SOL_IN_CODIGO = :numero
-            and FIL_IN_CODIGO = :filial
+              and FIL_IN_CODIGO = :filial
         `;
 
         connection = await getConnection();
@@ -50,21 +101,16 @@ async function buscarSolicitacaoPorId(req, res) {
 }
 
 async function listarSolicitacoes(req, res) {
-    const {page = 1, limit = 10, dataAlteracao: dataAlteracao, aprovado: aprovado} = req.query;
+    const {
+        page = 1,
+        limit = 10,
+    } = req.query;
     const offset = (page - 1) * limit;
+    const { where, binds } = montarFiltroSolicitacoes(req.query);
+    binds.offset = offset + 1;
+    binds.limit = offset + limit;
     let connection;
-
     try {
-        let where = '';
-        const binds = {offset: offset + 1, limit: offset + parseInt(limit)};
-        if (dataAlteracao) {
-            where += 'and sc.SOL_DT_EMISSAO >= TO_TIMESTAMP(:dataAlteracao, \'YYYY-MM-DD HH24:MI:SS\')';
-            binds.dataAlteracao = dataAlteracao;
-        }
-        if (aprovado) {
-            where += 'and sc.SOL_BO_APROVAAPPROVO = :aprovado';
-            binds.aprovado = aprovado ? "S" : "N";
-        }
         const sql = `
             SELECT *
             FROM (select SOL_IN_CODIGO           as id,
@@ -87,7 +133,7 @@ async function listarSolicitacoes(req, res) {
                          ROWNUM                     sequencia
                   from EST_SOLICITACAO sc
                            left join EST_INTEGRASOLIC origem on sc.SOL_CH_ORIGEM = origem.SOL_CH_ORIGEM
-                      where 1=1  ${where}
+                  ${where}
                   order by numero)
             WHERE sequencia BETWEEN :offset AND :limit
         `;
@@ -182,6 +228,8 @@ async function carregarItens(row, connection) {
                it.UNI_ST_UNIDADE                    as unidade,
                it.COS_IN_CODIGO                     as servico,
                it.PRO_IN_CODIGO                     as produto,
+               produto.PRO_ST_DESCRICAO             as nome_produto,
+               produto.GRU_IN_CODIGO                as codigo_grupo,
                it.SOI_DT_NECESSIDADE                as dt_necessidade,
                it.SOI_RE_QUANTIDADESOL              as quantidade,
                it.SOI_ST_ESPECIFICACAO              as especificacao,
@@ -212,6 +260,9 @@ async function carregarItens(row, connection) {
                    END                              as status_necessidade
         FROM EST_ITENSSOLI it
                  left join GLO_GRUPO_USUARIO user_solicitante on it.USU_IN_SOLICITANTE = user_solicitante.GRU_IN_CODIGO
+                 left join EST_PRODUTOS produto on produto.PRO_TAB_IN_CODIGO = it.PRO_TAB_IN_CODIGO
+            and produto.PRO_PAD_IN_CODIGO = it.PRO_PAD_IN_CODIGO
+            and produto.PRO_IN_CODIGO = it.PRO_IN_CODIGO
         WHERE it.ORG_TAB_IN_CODIGO = :ORG_TAB_IN_CODIGO
           AND it.ORG_PAD_IN_CODIGO = :ORG_PAD_IN_CODIGO
           AND it.ORG_IN_CODIGO = :ORG_IN_CODIGO

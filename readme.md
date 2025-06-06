@@ -18,9 +18,14 @@ API para consumo dos dados do Senior Mega
 * `GET /solicitacoes`: lista todas as solicitações com os seguintes parametros:
   + `dataAlteracao`: data de altera o dos dados do fornecedor (formato `YYYY-MM-DD HH24:MI:SSZ`)
   + `cnpj`: cnpj do fornecedor
-  + `page`: n mero da p gina da lista de fornecedores (padrão: 1)
+  + `page`: número da página da lista de fornecedores (padrão: 1)
   + `limit`: quantidade de fornecedores por p gina (padrão: 10)
-* `GET /solicitacoes/:id`: busca uma solicitação pelo código
+  + `id`: código da solicitação
+  + `numero`: número da solicitação
+  + `filial`: filial da solicitação
+
+
+* `GET /solicitacoes/:filial/:id`: busca uma solicitação pelo código e filial
 
 ### Tipos de Classes
 
@@ -33,6 +38,14 @@ API para consumo dos dados do Senior Mega
 * `GET /operacoes`: lista todas as operações com os seguintes parâmetros:
   + `page`: número da página da lista de operações (padrão: 1)
   + `limit`: quantidade de operações por página (padrão: 10)
+
+### Grupo de produtos dos Usuários
+
+* `GET /usuarios/grupos`: lista todos os grupos na qual o usuário tem acesso 
+  + `page`: número da página da lista de operações (padrão: 1)
+  + `limit`: quantidade de operações por página (padrão: 10)
+  + `usuarios`: lista de nomes dosusuários
+  + `grupos`: lista de códigos dos grupos
 
 ## Configuração
 

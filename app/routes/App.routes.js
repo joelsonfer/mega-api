@@ -5,6 +5,7 @@ const {listarSolicitacoes, buscarSolicitacaoPorId, atualizarSolicitacao} = requi
 const {listarTiposClasses} = require('../controllers/TipoClasses.controller');
 const {listarOperacoes} = require('../controllers/Operacoes.controller');
 const {listarUsuariosGrupos} = require("../controllers/UsuariosGrupos.controller");
+const {listarItensSolicitacoes} = require("../controllers/SolicitacaoItens.controller");
 
 router.get('/fornecedores', listarFornecedores);
 router.get('/solicitacoes', listarSolicitacoes);
@@ -13,5 +14,6 @@ router.get('/solicitacoes/:filial/:numero', buscarSolicitacaoPorId);
 router.get('/tipos-classes', listarTiposClasses);
 router.get('/operacoes', listarOperacoes);
 router.get('/usuarios/grupos', listarUsuariosGrupos);
+router.get('/solicitacoes/itens', listarItensSolicitacoes);
 
 module.exports = router;

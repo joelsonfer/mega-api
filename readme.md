@@ -47,6 +47,22 @@ API para consumo dos dados do Senior Mega
   + `usuarios`: lista de nomes dosusuários
   + `grupos`: lista de códigos dos grupos
 
+### Cotações
+
+* `POST /cotacoes`: cotações dos itens de uma solicitação, com os seguintes parâmetros:
+  + `FIL_IN_CODIGO`: filial da solicitação
+  + `PDC_IN_CODIGO`: código do pedido
+  + `OBS_IN_CODIGO`: código da observação para atualizar no pedido
+  + `Itens`: lista de itens com os seguintes parâmetros:
+    - `ITP_IN_SEQUENCIA`: sequência do item no pedido
+    - `solicitacao`: informa es da solicitação com os seguintes parâmetros:
+      - `FIL_IN_CODIGO`: filial da solicitação
+      - `SOI_CH_STATUS`: status do item
+      - `SOI_CH_STATUSNEC`: status de necessidade do item
+      - `SOI_IN_CODIGO`: código do item
+      - `SOL_IN_CODIGO`: código da solicitação
+      - `SOL_IN_NUMRM`: número da solicitação
+
 ## Configuração
 
 A configura o do projeto feita atraves de variaveis de ambiente. As variaveis de ambiente são:

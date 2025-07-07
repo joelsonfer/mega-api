@@ -3,6 +3,29 @@ class CompraServices {
         this.connection = connection;
     }
 
+
+    /**
+     * Atualiza a observacao da compra
+     * @param codigo
+     * @param filial
+     * @param obs
+     * @returns {Promise<*>}
+     */
+    async atualizarObservacaoCompra(codigo, filial, obs) {
+        const sql = `
+            UPDATE EST_PEDCOMPRAS
+            SET OBS_IN_CODIGO = :obs
+            WHERE PDC_IN_CODIGO = :codigo
+              AND FIL_IN_CODIGO = :filial
+        `;
+        const binds = {
+            obs,
+            codigo,
+            filial
+        };
+        return await this.connection.execute(sql, binds);
+    }
+
     /**
      * Busca a compra com base no parametro
      * @param codigo

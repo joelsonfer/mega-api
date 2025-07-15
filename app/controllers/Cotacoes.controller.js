@@ -28,7 +28,7 @@ async function buscarCotacao(req, res) {
 }
 
 async function inserirCotacao(req, res) {
-    const {PDC_IN_CODIGO, FIL_IN_CODIGO, OBS_IN_CODIGO, Itens} = req.body;
+    const {PDC_IN_CODIGO, FIL_IN_CODIGO, OBS_IN_CODIGO, ENA_IN_CODIGOENT, Itens} = req.body;
 
     if (!PDC_IN_CODIGO || !FIL_IN_CODIGO || !Array.isArray(Itens)) {
         return res.status(400).json({erro: 'Parâmetros inválidos'});
@@ -41,12 +41,15 @@ async function inserirCotacao(req, res) {
         const solicitacaoService = new SolicitacoesServices(connection);
         const compraServices = new CompraServices(connection);
         const compra = await compraServices.buscarCompras(PDC_IN_CODIGO, FIL_IN_CODIGO);
-        if (OBS_IN_CODIGO) {
-            await compraServices.atualizarObservacaoCompra(PDC_IN_CODIGO, FIL_IN_CODIGO, OBS_IN_CODIGO);
-        }
         if (!compra) {
             res.status(404).json({erro: 'Compra nao encontrada'});
             return;
+        }
+        if (OBS_IN_CODIGO) {
+            await compraServices.atualizarObservacaoCompra(PDC_IN_CODIGO, FIL_IN_CODIGO, OBS_IN_CODIGO);
+        }
+        if (ENA_IN_CODIGOENT) {
+            await compraServices.atualizarLocalEntrega(PDC_IN_CODIGO, FIL_IN_CODIGO, ENA_IN_CODIGOENT);
         }
         if (compra.COTACAO) {
             res.json({

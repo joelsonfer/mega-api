@@ -75,7 +75,7 @@ async function listarItensSolicitacoes(req, res) {
     try {
         const sql = `
             SELECT sub.*,
-                   (select count(*) 
+                   (select count(*)
                     from GLO_ANEXO
                     where ANX_ST_NOMETABELA = 'EST_ITENSSOLI'
                       and ANX_ST_CHAVEPK = sub.chave_anexos) anexos
@@ -98,6 +98,7 @@ async function listarItensSolicitacoes(req, res) {
                          it.SOI_DT_NECESSIDADE                as dt_necessidade,
                          it.SOI_RE_QUANTIDADESOL              as quantidade,
                          it.SOI_ST_ESPECIFICACAO              as especificacao,
+                         it.SOI_ST_REFERENCIA                 as referencia,
                          it.SOI_ST_MOTIVOSOLICITACAO          as motivo_solicitacao,
                          it.APL_IN_CODIGO                     as operacao,
                          it.TPC_ST_CLASSE                     as tipo_classe,

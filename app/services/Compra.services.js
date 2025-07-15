@@ -27,6 +27,31 @@ class CompraServices {
     }
 
     /**
+     * Atualiza a observacao da compra
+     * @param codigo
+     * @param filial
+     * @param entrega
+     * @returns {Promise<*>}
+     */
+    async atualizarLocalEntrega(codigo, filial, entrega) {
+        const sql = `
+            UPDATE EST_PEDCOMPRAS
+            SET ENA_IN_CODIGOENT = :entrega,
+                AGN_TAB_IN_CODIGOENT = (select AGN_TAB_IN_CODIGO from GLO_ENDAGENTES where AGN_IN_CODIGO = :filial and ENA_IN_CODIGO = :entrega),
+                AGN_PAD_IN_CODIGOENT = (select AGN_PAD_IN_CODIGO from GLO_ENDAGENTES where AGN_IN_CODIGO = :filial and ENA_IN_CODIGO = :entrega),
+                AGN_IN_CODIGOENT = :filial
+            WHERE PDC_IN_CODIGO = :codigo
+              AND FIL_IN_CODIGO = :filial
+        `;
+        const binds = {
+            entrega,
+            codigo,
+            filial
+        };
+        return await this.connection.execute(sql, binds);
+    }
+
+    /**
      * Busca a compra com base no parametro
      * @param codigo
      * @param filial
@@ -80,8 +105,8 @@ class CompraServices {
                    ORG_PAD_IN_CODIGO,
                    ORG_IN_CODIGO,
                    ORG_TAU_ST_CODIGO,
-                   110 as SER_TAB_IN_CODIGO,
-                   SER_TAB_IN_CODIGO as  SER_TAB_IN_CODIGO_COMPRAS,
+                   110               as SER_TAB_IN_CODIGO,
+                   SER_TAB_IN_CODIGO as SER_TAB_IN_CODIGO_COMPRAS,
                    SER_IN_SEQUENCIA,
                    ITP_IN_SEQUENCIA,
                    PRO_TAB_IN_CODIGO,
@@ -129,7 +154,6 @@ class CompraServices {
     /**
      * Busca os itens da compra
      * @param compra
-     * @param sequencia
      * @returns {Promise<*>}
      */
     async listarItensDaCompra(compra) {
@@ -192,7 +216,6 @@ class CompraServices {
     }
 
 
-
     /**
      * Atualiza a data de entrega de um item de compra
      * @param compraItem
@@ -201,7 +224,7 @@ class CompraServices {
      */
     async atualizarDataEntrega(compraItem, dataEntrega) {
         const sql = `
-            update est_itenspedprogramados 
+            update est_itenspedprogramados
             set itp_dt_entrega = to_date(:dataEntrega, 'yyyy-mm-dd')
             where ORG_TAB_IN_CODIGO = :ORG_TAB_IN_CODIGO
               and ORG_PAD_IN_CODIGO = :ORG_PAD_IN_CODIGO
@@ -226,7 +249,7 @@ class CompraServices {
         await this.connection.execute(sql, binds);
 
         const sql2 = `
-            update est_solicpedido 
+            update est_solicpedido
             set itp_dt_entrega = to_date(:dataEntrega, 'yyyy-mm-dd')
             where ORG_TAB_IN_CODIGO = :ORG_TAB_IN_CODIGO
               and ORG_PAD_IN_CODIGO = :ORG_PAD_IN_CODIGO

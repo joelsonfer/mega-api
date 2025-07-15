@@ -2,7 +2,7 @@ const {getConnection} = require('../database/Oracle.database');
 const CompraServices = require("../services/Compra.services");
 
 async function atualizarCompra(req, res) {
-    const {PDC_IN_CODIGO, FIL_IN_CODIGO, Itens} = req.body;
+    const {PDC_IN_CODIGO, FIL_IN_CODIGO, ENA_IN_CODIGOENT, Itens} = req.body;
 
     if (!PDC_IN_CODIGO || !FIL_IN_CODIGO || !Array.isArray(Itens)) {
         return res.status(400).json({erro: 'Parâmetros inválidos'});
@@ -16,6 +16,9 @@ async function atualizarCompra(req, res) {
         if (!compra) {
             res.status(404).json({erro: 'Compra nao encontrada'});
             return;
+        }
+        if (ENA_IN_CODIGOENT) {
+            await compraServices.atualizarLocalEntrega(PDC_IN_CODIGO, FIL_IN_CODIGO, ENA_IN_CODIGOENT);
         }
         for (const item of Itens) {
             if (item.ITP_DT_ENTREGA) {

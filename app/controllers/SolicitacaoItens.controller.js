@@ -74,7 +74,11 @@ async function listarItensSolicitacoes(req, res) {
     let connection;
     try {
         const sql = `
-            SELECT *
+            SELECT sub.*,
+                   (select count(*) 
+                    from GLO_ANEXO
+                    where ANX_ST_NOMETABELA = 'EST_ITENSSOLI'
+                      and ANX_ST_CHAVEPK = sub.chave_anexos) anexos
             FROM (SELECT sc.SOL_IN_CODIGO                     as id,
                          sc.SOL_IN_NUMRM                      as numero,
                          sc.FIL_IN_CODIGO                     as filial,
@@ -120,7 +124,11 @@ async function listarItensSolicitacoes(req, res) {
                              ELSE 'DESCONHECIDO'
                              END                              as status_necessidade,
                          it.SOI_DT_ALTERACAO                  as data_alteracao,
-                         it.SOI_DT_INCLUSAO                   as data_inclusao
+                         it.SOI_DT_INCLUSAO                   as data_inclusao,
+                         it.ORG_TAB_IN_CODIGO || ';' || it.ORG_PAD_IN_CODIGO || ';' || it.ORG_IN_CODIGO || ';' ||
+                         it.ORG_TAU_ST_CODIGO || ';' ||
+                         it.SER_TAB_IN_CODIGO || ';' || it.SER_IN_SEQUENCIA || ';' || it.SOL_IN_CODIGO || ';' ||
+                         it.SOI_IN_CODIGO                     AS chave_anexos
                   FROM EST_ITENSSOLI it
                            join EST_SOLICITACAO sc on it.ORG_TAB_IN_CODIGO = sc.ORG_TAB_IN_CODIGO
                       AND it.ORG_PAD_IN_CODIGO = sc.ORG_PAD_IN_CODIGO
@@ -130,12 +138,13 @@ async function listarItensSolicitacoes(req, res) {
                       AND it.SER_IN_SEQUENCIA = sc.SER_IN_SEQUENCIA
                       AND it.SOL_IN_CODIGO = sc.SOL_IN_CODIGO
                            left join EST_INTEGRASOLIC origem on sc.SOL_CH_ORIGEM = origem.SOL_CH_ORIGEM
-                           left join GLO_GRUPO_USUARIO user_solicitante on it.USU_IN_SOLICITANTE = user_solicitante.GRU_IN_CODIGO
+                           left join GLO_GRUPO_USUARIO user_solicitante
+                                     on it.USU_IN_SOLICITANTE = user_solicitante.GRU_IN_CODIGO
                            left join EST_PRODUTOS produto on produto.PRO_TAB_IN_CODIGO = it.PRO_TAB_IN_CODIGO
                       and produto.PRO_PAD_IN_CODIGO = it.PRO_PAD_IN_CODIGO
                       and produto.PRO_IN_CODIGO = it.PRO_IN_CODIGO
                       ${where}
-                  order by numero, numero_item)
+                  order by numero, numero_item) sub
             WHERE sequencia BETWEEN :offset AND :limit
         `;
 
@@ -156,5 +165,8 @@ async function listarItensSolicitacoes(req, res) {
         if (connection) await connection.close();
     }
 }
+
+
+
 
 module.exports = {listarItensSolicitacoes};

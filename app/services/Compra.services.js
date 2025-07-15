@@ -191,6 +191,65 @@ class CompraServices {
         }
     }
 
+
+
+    /**
+     * Atualiza a data de entrega de um item de compra
+     * @param compraItem
+     * @param dataEntrega
+     * @returns {Promise<*>}
+     */
+    async atualizarDataEntrega(compraItem, dataEntrega) {
+        const sql = `
+            update est_itenspedprogramados 
+            set itp_dt_entrega = to_date(:dataEntrega, 'yyyy-mm-dd')
+            where ORG_TAB_IN_CODIGO = :ORG_TAB_IN_CODIGO
+              and ORG_PAD_IN_CODIGO = :ORG_PAD_IN_CODIGO
+              and ORG_IN_CODIGO = :ORG_IN_CODIGO
+              and ORG_TAU_ST_CODIGO = :ORG_TAU_ST_CODIGO
+              and SER_TAB_IN_CODIGO = :SER_TAB_IN_CODIGO
+              and SER_IN_SEQUENCIA = :SER_IN_SEQUENCIA
+              and PDC_IN_CODIGO = :PDC_IN_CODIGO
+              and ITP_IN_SEQUENCIA = :ITP_IN_SEQUENCIA
+        `;
+        const binds = {
+            dataEntrega,
+            ORG_TAB_IN_CODIGO: compraItem.ORG_TAB_IN_CODIGO,
+            ORG_PAD_IN_CODIGO: compraItem.ORG_PAD_IN_CODIGO,
+            ORG_IN_CODIGO: compraItem.ORG_IN_CODIGO,
+            ORG_TAU_ST_CODIGO: compraItem.ORG_TAU_ST_CODIGO,
+            SER_TAB_IN_CODIGO: compraItem.SER_TAB_IN_CODIGO_COMPRAS,
+            SER_IN_SEQUENCIA: compraItem.SER_IN_SEQUENCIA,
+            PDC_IN_CODIGO: compraItem.PDC_IN_CODIGO,
+            ITP_IN_SEQUENCIA: compraItem.ITP_IN_SEQUENCIA,
+        };
+        await this.connection.execute(sql, binds);
+
+        const sql2 = `
+            update est_solicpedido 
+            set itp_dt_entrega = to_date(:dataEntrega, 'yyyy-mm-dd')
+            where ORG_TAB_IN_CODIGO = :ORG_TAB_IN_CODIGO
+              and ORG_PAD_IN_CODIGO = :ORG_PAD_IN_CODIGO
+              and ORG_IN_CODIGO = :ORG_IN_CODIGO
+              and ORG_TAU_ST_CODIGO = :ORG_TAU_ST_CODIGO
+              and PDC_SER_TAB_IN_CODIGO = :PDC_SER_TAB_IN_CODIGO
+              and PDC_SER_IN_SEQUENCIA = :PDC_SER_IN_SEQUENCIA
+              and PDC_IN_CODIGO = :PDC_IN_CODIGO
+              and ITP_IN_SEQUENCIA = :ITP_IN_SEQUENCIA
+        `;
+        const binds2 = {
+            dataEntrega,
+            ORG_TAB_IN_CODIGO: compraItem.ORG_TAB_IN_CODIGO,
+            ORG_PAD_IN_CODIGO: compraItem.ORG_PAD_IN_CODIGO,
+            ORG_IN_CODIGO: compraItem.ORG_IN_CODIGO,
+            ORG_TAU_ST_CODIGO: compraItem.ORG_TAU_ST_CODIGO,
+            PDC_SER_TAB_IN_CODIGO: compraItem.SER_TAB_IN_CODIGO_COMPRAS,
+            PDC_SER_IN_SEQUENCIA: compraItem.SER_IN_SEQUENCIA,
+            PDC_IN_CODIGO: compraItem.PDC_IN_CODIGO,
+            ITP_IN_SEQUENCIA: compraItem.ITP_IN_SEQUENCIA,
+        };
+        await this.connection.execute(sql2, binds2);
+    }
 }
 
 module.exports = CompraServices;

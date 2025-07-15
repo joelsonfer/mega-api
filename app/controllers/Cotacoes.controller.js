@@ -60,12 +60,17 @@ async function inserirCotacao(req, res) {
         const itensProcessados = [];
         for (const item of Itens) {
             const compraItem = await compraServices.buscarItensDaCompra(compra, item.ITP_IN_SEQUENCIA);
-            const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
-            await cotacaoService.inserirItemCotacao(compraItem, cotInCodigo);
-            await cotacaoService.inserirVinculoItemCotacao(compraItem, cotInCodigo);
-            await cotacaoService.atualizarVinculoComCompraItem(compraItem, cotInCodigo, solicitacao);
-            await cotacaoService.gerarVinculoSolicitacaoPedido(compraItem, cotInCodigo, solicitacao);
-            await solicitacaoService.atualizarStatusItemSolicitacao(solicitacao, item.solicitacao);
+            if (item.ITP_DT_ENTREGA) {
+                await compraServices.atualizarDataEntrega(compraItem, item.ITP_DT_ENTREGA);
+            }
+            if (item.solicitacao) {
+                const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
+                await cotacaoService.inserirItemCotacao(compraItem, cotInCodigo);
+                await cotacaoService.inserirVinculoItemCotacao(compraItem, cotInCodigo);
+                await cotacaoService.atualizarVinculoComCompraItem(compraItem, cotInCodigo, solicitacao);
+                await cotacaoService.gerarVinculoSolicitacaoPedido(compraItem, cotInCodigo, solicitacao);
+                await solicitacaoService.atualizarStatusItemSolicitacao(solicitacao, item.solicitacao);
+            }
             itensProcessados.push({...item})
         }
 

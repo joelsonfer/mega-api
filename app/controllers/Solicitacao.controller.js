@@ -286,4 +286,53 @@ async function carregarItens(row, connection) {
     row.ITEMS = itemResult.rows;
 }
 
-module.exports = {listarSolicitacoes, buscarSolicitacaoPorId, atualizarSolicitacao};
+
+function to_base64(lob) {
+    return new Promise((resolve, reject) => {
+        if (!lob) return resolve(null);
+        if (Buffer.isBuffer(lob)) return resolve(lob.toString('base64'));
+
+        let chunks = [];
+        lob.on('data', chunk => chunks.push(chunk));
+        lob.on('end', () => resolve(Buffer.concat(chunks).toString('base64')));
+        lob.on('error', err => reject(err));
+    });
+}
+
+async function downloadAnexos(req, res) {
+    const {chave, publico} = req.query;
+
+    const binds = {
+        anexos: chave
+    };
+    const where = [];
+    if(publico) {
+        binds.publico = 'S'
+        where.push("AND ANX_BO_PUBLICO = :publico");
+    }
+    const sql = `
+        select ANX_IN_SEQUENCIAL, ANX_ST_CHAVEPK, ANX_ST_NOME, ANX_BL_ARQUIVO from GLO_ANEXO
+        where ANX_ST_NOMETABELA = 'EST_ITENSSOLI'
+          and ANX_ST_CHAVEPK = :anexos
+          ${where.join(' AND ')}
+    `;
+    let connection;
+    try {
+        connection = await getConnection();
+        const result = await connection.execute(sql, binds);
+        const anexos = result.rows;
+        const files = await Promise.all(anexos.map(async anexo => ({
+            filename: anexo.ANX_ST_NOME,
+            content: await to_base64(anexo.ANX_BL_ARQUIVO)
+        })));
+        res.json(files);
+    } catch (err) {
+        console.error('Erro ao baixar anexos:', err);
+        res.status(500).json({erro: 'Erro ao baixar anexos'});
+    } finally {
+        if (connection) await connection.close();
+    }
+}
+
+
+module.exports = {listarSolicitacoes, buscarSolicitacaoPorId, atualizarSolicitacao, downloadAnexos};

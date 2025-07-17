@@ -30,7 +30,6 @@ class CompraServices {
      * Atualiza situação do pedido
      * @param codigo
      * @param filial
-     * @param obs
      * @returns {Promise<*>}
      */
     async atualizarSituacaoPedido(codigo, filial) {

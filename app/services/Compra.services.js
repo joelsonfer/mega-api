@@ -27,7 +27,28 @@ class CompraServices {
     }
 
     /**
-     * Atualiza a observacao da compra
+     * Atualiza situação do pedido
+     * @param codigo
+     * @param filial
+     * @param obs
+     * @returns {Promise<*>}
+     */
+    async atualizarSituacaoPedido(codigo, filial) {
+        const sql = `
+            UPDATE EST_PEDCOMPRAS
+            SET PDC_ST_SITUACAO = 'PA'
+            WHERE PDC_IN_CODIGO = :codigo
+              AND FIL_IN_CODIGO = :filial
+        `;
+        const binds = {
+            codigo,
+            filial
+        };
+        return await this.connection.execute(sql, binds);
+    }
+
+    /**
+     * Atualiza o local de entrega e situação do pedido
      * @param codigo
      * @param filial
      * @param entrega
@@ -36,7 +57,8 @@ class CompraServices {
     async atualizarLocalEntrega(codigo, filial, entrega) {
         const sql = `
             UPDATE EST_PEDCOMPRAS
-            SET ENA_IN_CODIGOENT = :entrega,
+            SET PDC_ST_SITUACAO = 'PA',
+                ENA_IN_CODIGOENT = :entrega,
                 AGN_TAB_IN_CODIGOENT = (select AGN_TAB_IN_CODIGO from GLO_ENDAGENTES where AGN_IN_CODIGO = :filial and ENA_IN_CODIGO = :entrega),
                 AGN_PAD_IN_CODIGOENT = (select AGN_PAD_IN_CODIGO from GLO_ENDAGENTES where AGN_IN_CODIGO = :filial and ENA_IN_CODIGO = :entrega),
                 AGN_IN_CODIGOENT = :filial

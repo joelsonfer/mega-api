@@ -27,6 +27,17 @@ API para consumo dos dados do Senior Mega
 
 * `GET /solicitacoes/:filial/:id`: busca uma solicitação pelo código e filial
 
+* `GET /solicitacoes/anexos?chave={chave}`: buscar anexos de uma solicitação por chave
+
+* `GET /solicitacoes/itens`: listar todos os itens de solicitações com os seguintes parâmetros:
+  + `dataAlteracao`: data de altera o dos dados do item de solicitação (formato `YYYY-MM-DD`)
+  + `aprovado`: indica se a solicitação está aprovada (valores possíveis: `true`, `false`)
+  + `id`: código da solicitação
+  + `numero`: número da solicitação
+  + `filial`: filial da solicitação
+  + `status`: status da solicitação
+  + `statusNecessidade`: status da necessidade da solicitação
+
 ### Tipos de Classes
 
 * `GET /tipos-classes`: lista todos os tipos de classes com os seguintes parâmetros:

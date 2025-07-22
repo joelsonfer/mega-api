@@ -56,8 +56,7 @@ class CompraServices {
     async atualizarLocalEntrega(codigo, filial, entrega) {
         const sql = `
             UPDATE EST_PEDCOMPRAS
-            SET PDC_ST_SITUACAO = 'PA',
-                ENA_IN_CODIGOENT = :entrega,
+            SET ENA_IN_CODIGOENT = :entrega,
                 AGN_TAB_IN_CODIGOENT = (select AGN_TAB_IN_CODIGO from GLO_ENDAGENTES where AGN_IN_CODIGO = :filial and ENA_IN_CODIGO = :entrega),
                 AGN_PAD_IN_CODIGOENT = (select AGN_PAD_IN_CODIGO from GLO_ENDAGENTES where AGN_IN_CODIGO = :filial and ENA_IN_CODIGO = :entrega),
                 AGN_IN_CODIGOENT = :filial

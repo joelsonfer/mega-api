@@ -50,8 +50,6 @@ async function inserirCotacao(req, res) {
         }
         if (ENA_IN_CODIGOENT) {
             await compraServices.atualizarLocalEntrega(PDC_IN_CODIGO, FIL_IN_CODIGO, ENA_IN_CODIGOENT);
-        } else {
-            await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
         }
         if (compra.COTACAO) {
             res.json({
@@ -78,6 +76,7 @@ async function inserirCotacao(req, res) {
             }
             itensProcessados.push({...item})
         }
+        await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
 
         await connection.commit();
         res.json({

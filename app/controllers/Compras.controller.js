@@ -19,8 +19,6 @@ async function atualizarCompra(req, res) {
         }
         if (ENA_IN_CODIGOENT) {
             await compraServices.atualizarLocalEntrega(PDC_IN_CODIGO, FIL_IN_CODIGO, ENA_IN_CODIGOENT);
-        } else {
-            await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
         }
         for (const item of Itens) {
             if (item.ITP_DT_ENTREGA) {
@@ -28,6 +26,7 @@ async function atualizarCompra(req, res) {
                 await compraServices.atualizarDataEntrega(compraItem, item.ITP_DT_ENTREGA);
             }
         }
+        await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
         await connection.commit();
         res.json(req.body);
     } catch (err) {

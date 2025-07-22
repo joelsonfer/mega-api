@@ -35,8 +35,7 @@ async function listarFornecedores(req, res) {
             where AGN_CH_TIPOPESSOAFJ = 'J' ${where}
             ORDER BY agente.AGN_PAD_IN_CODIGO, agente.AGN_IN_CODIGO
                 )
-            WHERE sequencia BETWEEN :
-            offset AND :limit
+            WHERE sequencia BETWEEN :offset AND :limit
         `;
 
         connection = await getConnection();

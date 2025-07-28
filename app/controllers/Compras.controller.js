@@ -27,6 +27,7 @@ async function atualizarCompra(req, res) {
             }
         }
         await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
+        await compraServices.atualizarSituacaoItensPedido(compra);
         await connection.commit();
         res.json(req.body);
     } catch (err) {

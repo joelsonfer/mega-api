@@ -46,6 +46,38 @@ class CompraServices {
         return await this.connection.execute(sql, binds);
     }
 
+
+    /**
+     * Atualiza situação dos itens do pedido
+     * @param compra
+     * @returns {Promise<*>}
+     */
+    async atualizarSituacaoItensPedido(compra) {
+        const sql = `
+            UPDATE est_itenspedcompra
+            SET itp_st_situacao = 'PA'
+            WHERE ORG_TAB_IN_CODIGO = :ORG_TAB_IN_CODIGO
+              and ORG_PAD_IN_CODIGO = :ORG_PAD_IN_CODIGO
+              and ORG_IN_CODIGO = :ORG_IN_CODIGO
+              and ORG_TAU_ST_CODIGO = :ORG_TAU_ST_CODIGO
+              and PDC_IN_CODIGO = :PDC_IN_CODIGO
+              and SER_IN_SEQUENCIA = :SER_IN_SEQUENCIA
+              AND SER_TAB_IN_CODIGO = :SER_TAB_IN_CODIGO
+        `;
+
+        const binds = {
+            ORG_TAB_IN_CODIGO: compra.ORG_TAB_IN_CODIGO,
+            ORG_PAD_IN_CODIGO: compra.ORG_PAD_IN_CODIGO,
+            ORG_IN_CODIGO: compra.ORG_IN_CODIGO,
+            ORG_TAU_ST_CODIGO: compra.ORG_TAU_ST_CODIGO,
+            PDC_IN_CODIGO: compra.PDC_IN_CODIGO,
+            SER_IN_SEQUENCIA: compra.SER_IN_SEQUENCIA,
+            SER_TAB_IN_CODIGO: compra.SER_TAB_IN_CODIGO_COMPRAS,
+        };
+         await this.connection.execute(sql, binds);
+    }
+
+
     /**
      * Atualiza o local de entrega e situação do pedido
      * @param codigo

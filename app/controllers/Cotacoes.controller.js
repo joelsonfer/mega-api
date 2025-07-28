@@ -77,6 +77,7 @@ async function inserirCotacao(req, res) {
             itensProcessados.push({...item})
         }
         await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
+        await compraServices.atualizarSituacaoItensPedido(compra);
 
         await connection.commit();
         res.json({

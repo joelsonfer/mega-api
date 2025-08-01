@@ -4,6 +4,31 @@ class SolicitacaoServices {
         this.connection = connection;
     }
 
+
+    /**
+     * As que forem administrativas, origem U, devem ser consideradas como Pedidos Livres
+     * Pedidos Livres não podem gerar cotações
+     *
+     * @param Itens
+     * @returns {Promise<boolean>}
+     */
+    async verificarPedidoLivres(Itens) {
+        if (Itens && Itens.length > 0) {
+            const itemVerificao = Itens[0];
+            if (itemVerificao.solicitacao) {
+                const solicitacao = await this.buscarItemSolicitacao(itemVerificao.solicitacao);
+                /**
+                 * As que forem administrativas, origem U, devem ser consideradas como Pedidos Livres
+                 * Pedidos Livres não podem gerar cotações
+                 */
+                if (solicitacao && solicitacao.SOL_CH_ORIGEM == 'U') {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Busca o item solicitacao com base na variavel item
      * @param item
@@ -19,6 +44,7 @@ class SolicitacaoServices {
                    solicitacao.SER_IN_SEQUENCIA,
                    solicitacao.SOL_IN_CODIGO,
                    solicitacao.SOI_IN_CODIGO,
+                   SOL_CH_ORIGEM,
                    FIL_IN_CODIGO
             FROM EST_ITENSSOLI solicitacao
                      join EST_SOLICITACAO ES

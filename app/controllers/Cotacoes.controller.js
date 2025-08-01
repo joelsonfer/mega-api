@@ -51,40 +51,36 @@ async function inserirCotacao(req, res) {
         if (ENA_IN_CODIGOENT) {
             await compraServices.atualizarLocalEntrega(PDC_IN_CODIGO, FIL_IN_CODIGO, ENA_IN_CODIGOENT);
         }
-        if (compra.COTACAO) {
+        const pedidoLivres = await solicitacaoService.verificarPedidoLivres(Itens);
+        if (pedidoLivres) {
+            await processarPedidosLivres(Itens, compraServices, compra, solicitacaoService);
+            connection.commit();
             res.json({
-                COT_IN_CODIGO: compra.COTACAO,
-                STATUS: "Não atualizado",
+                COT_IN_CODIGO: null,
+                OBS_IN_CODIGO: OBS_IN_CODIGO,
+                TIPO: "LIVRE",
+                itens: Itens
             });
-            return;
-        }
-        const cotInCodigo = await cotacaoService.getCotacaoSequence(compra.ORG_IN_CODIGO);
-        await cotacaoService.inserirCotacaoMega(compra, cotInCodigo);
-        const itensProcessados = [];
-        for (const item of Itens) {
-            const compraItem = await compraServices.buscarItensDaCompra(compra, item.ITP_IN_SEQUENCIA);
-            if (item.ITP_DT_ENTREGA) {
-                await compraServices.atualizarDataEntrega(compraItem, item.ITP_DT_ENTREGA);
+        } else {
+            if (compra.COTACAO) {
+                res.json({
+                    COT_IN_CODIGO: compra.COTACAO,
+                    STATUS: "Não atualizado",
+                });
+                return;
             }
-            if (item.solicitacao) {
-                const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
-                await cotacaoService.inserirItemCotacao(compraItem, cotInCodigo);
-                await cotacaoService.inserirVinculoItemCotacao(compraItem, cotInCodigo);
-                await cotacaoService.atualizarVinculoComCompraItem(compraItem, cotInCodigo, solicitacao);
-                await cotacaoService.gerarVinculoSolicitacaoPedido(compraItem, cotInCodigo, solicitacao);
-                await solicitacaoService.atualizarStatusItemSolicitacao(solicitacao, item.solicitacao);
-            }
-            itensProcessados.push({...item})
-        }
-        await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
-        await compraServices.atualizarSituacaoItensPedido(compra);
+            const cotInCodigo = await processarPedidosObra(cotacaoService, compra, Itens, compraServices, solicitacaoService);
+            await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
+            await compraServices.atualizarSituacaoItensPedido(compra);
 
-        await connection.commit();
-        res.json({
-            COT_IN_CODIGO: cotInCodigo,
-            OBS_IN_CODIGO: OBS_IN_CODIGO,
-            itens: itensProcessados
-        });
+            await connection.commit();
+            res.json({
+                COT_IN_CODIGO: cotInCodigo,
+                OBS_IN_CODIGO: OBS_IN_CODIGO,
+                TIPO: "OBRA",
+                itens: Itens
+            });
+        }
     } catch (err) {
         if (connection) await connection.rollback();
         console.error('Erro ao inserir cotacao:', err);
@@ -115,27 +111,26 @@ async function excluirCotacao(req, res) {
             res.status(404).json({erro: 'Compra nao encontrada'});
             return;
         }
-        if (!compra.COTACAO) {
-            return res.status(400).json({erro: 'Não foi localizado uma cotação para essa compra'});
-        }
         const cotInCodigo = compra.COTACAO;
-        const itensProcessados = [];
         for (const item of Itens) {
-            const compraItem = await compraServices.buscarItensDaCompra(compra, item.ITP_IN_SEQUENCIA);
-            const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
-            await cotacaoService.excluirVinculoSolicitacaoPedido(compraItem);
-            await cotacaoService.atualizarVinculoComCompraItem(solicitacao);
-            await cotacaoService.excluirVinculoItemCotacao(compraItem, cotInCodigo);
-            await cotacaoService.excluirItemCotacao(compraItem, cotInCodigo);
+            if (cotInCodigo) {
+                const compraItem = await compraServices.buscarItensDaCompra(compra, item.ITP_IN_SEQUENCIA);
+                const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
+                await cotacaoService.excluirVinculoSolicitacaoPedido(compraItem);
+                await cotacaoService.atualizarVinculoComCompraItem(solicitacao);
+                await cotacaoService.excluirVinculoItemCotacao(compraItem, cotInCodigo);
+                await cotacaoService.excluirItemCotacao(compraItem, cotInCodigo);
+            }
             await solicitacaoService.atualizarStatusItemSolicitacao(solicitacao, item.solicitacao);
-            itensProcessados.push({...item})
         }
-        await cotacaoService.excluirCotacaoMega(compra, cotInCodigo);
+        if (cotInCodigo) {
+            await cotacaoService.excluirCotacaoMega(compra, cotInCodigo);
+        }
 
         await connection.commit();
         res.json({
             COT_IN_CODIGO: cotInCodigo,
-            itens: itensProcessados
+            itens: Itens
         });
     } catch (err) {
         if (connection) await connection.rollback();
@@ -147,6 +142,39 @@ async function excluirCotacao(req, res) {
     } finally {
         if (connection) await connection.close();
     }
+}
+
+async function processarPedidosLivres(Itens, compraServices, compra, solicitacaoService) {
+    for (const item of Itens) {
+        if (item.ITP_DT_ENTREGA) {
+            const compraItem = await compraServices.buscarItensDaCompra(compra, item.ITP_IN_SEQUENCIA);
+            await compraServices.atualizarDataEntrega(compraItem, item.ITP_DT_ENTREGA);
+        }
+        if (item.solicitacao) {
+            const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
+            await solicitacaoService.atualizarStatusItemSolicitacao(solicitacao, item.solicitacao);
+        }
+    }
+}
+
+async function processarPedidosObra(cotacaoService, compra, Itens, compraServices, solicitacaoService) {
+    const cotInCodigo = await cotacaoService.getCotacaoSequence(compra.ORG_IN_CODIGO);
+    await cotacaoService.inserirCotacaoMega(compra, cotInCodigo);
+    for (const item of Itens) {
+        const compraItem = await compraServices.buscarItensDaCompra(compra, item.ITP_IN_SEQUENCIA);
+        if (item.ITP_DT_ENTREGA) {
+            await compraServices.atualizarDataEntrega(compraItem, item.ITP_DT_ENTREGA);
+        }
+        if (item.solicitacao) {
+            const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
+            await cotacaoService.inserirItemCotacao(compraItem, cotInCodigo);
+            await cotacaoService.inserirVinculoItemCotacao(compraItem, cotInCodigo);
+            await cotacaoService.atualizarVinculoComCompraItem(compraItem, cotInCodigo, solicitacao);
+            await cotacaoService.gerarVinculoSolicitacaoPedido(compraItem, cotInCodigo, solicitacao);
+            await solicitacaoService.atualizarStatusItemSolicitacao(solicitacao, item.solicitacao);
+        }
+    }
+    return cotInCodigo;
 }
 
 module.exports = {inserirCotacao, excluirCotacao, buscarCotacao};

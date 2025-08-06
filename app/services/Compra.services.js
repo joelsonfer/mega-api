@@ -45,6 +45,29 @@ class CompraServices {
         };
         return await this.connection.execute(sql, binds);
     }
+    /**
+     * Atualiza situação do pedido
+     * @param codigo
+     * @param filial
+     * @returns {Promise<*>}
+     */
+    async buscarSituacaoPedido(codigo, filial) {
+        const sql = `
+            select PDC_ST_SITUACAO from EST_PEDCOMPRAS
+            WHERE PDC_IN_CODIGO = :codigo
+              AND FIL_IN_CODIGO = :filial
+        `;
+        const binds = {
+            codigo,
+            filial
+        };
+        const result = await this.connection.execute(sql, binds);
+        if (result.rows.length > 0) {
+            return result.rows[0];
+        } else {
+            throw new Error('Compra nao encontrada');
+        }
+    }
 
 
     /**

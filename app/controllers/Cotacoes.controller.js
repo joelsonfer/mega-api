@@ -70,8 +70,11 @@ async function inserirCotacao(req, res) {
                 return;
             }
             const cotInCodigo = await processarPedidosObra(cotacaoService, compra, Itens, compraServices, solicitacaoService);
-            await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
-            await compraServices.atualizarSituacaoItensPedido(compra);
+            const situacao = await compraServices.buscarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
+            if (situacao.PDC_ST_SITUACAO === 'PA') {
+                await compraServices.atualizarSituacaoPedido(PDC_IN_CODIGO, FIL_IN_CODIGO);
+                await compraServices.atualizarSituacaoItensPedido(compra);
+            }
 
             await connection.commit();
             res.json({

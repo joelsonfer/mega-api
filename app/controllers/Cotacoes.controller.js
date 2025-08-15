@@ -116,9 +116,9 @@ async function excluirCotacao(req, res) {
         }
         const cotInCodigo = compra.COTACAO;
         for (const item of Itens) {
+            const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
             if (cotInCodigo) {
                 const compraItem = await compraServices.buscarItensDaCompra(compra, item.ITP_IN_SEQUENCIA);
-                const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
                 await cotacaoService.excluirVinculoSolicitacaoPedido(compraItem);
                 await cotacaoService.atualizarVinculoComCompraItem(solicitacao);
                 await cotacaoService.excluirVinculoItemCotacao(compraItem, cotInCodigo);

@@ -96,6 +96,54 @@ async function inserirCotacao(req, res) {
     }
 }
 
+async function validarCotacao(req, res) {
+    const {FIL_IN_CODIGO, Itens} = req.body;
+
+    if (!FIL_IN_CODIGO || !Array.isArray(Itens)) {
+        return res.status(400).json({erro: 'Parâmetros inválidos'});
+    }
+
+    let connection;
+    try {
+        connection = await getConnection();
+        const solicitacaoService = new SolicitacoesServices(connection);
+        const pedidoLivres = await solicitacaoService.verificarPedidoLivres(Itens);
+        if (pedidoLivres) {
+            res.json({
+                valido: true,
+                TIPO: "LIVRE",
+            });
+        } else {
+            const mensagem = [];
+            for (const item of Itens) {
+                const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
+                if (solicitacao.COT_IN_CODIGO) {
+                    mensagem.push(`Cotação existente para RM: ${item.solicitacao.SOL_IN_NUMRM}-${item.solicitacao.SOI_IN_CODIGO}.`);
+                }
+            }
+            if (mensagem.length > 0) {
+                res.status(422).json({
+                    valido: false,
+                    erro: mensagem.join(' \n'),
+                });
+            }
+            res.json({
+                valido: true,
+                TIPO: "OBRA",
+            });
+        }
+    } catch (err) {
+        if (connection) await connection.rollback();
+        console.error('Erro ao inserir cotacao:', err);
+        res.status(500).json({
+            erro: 'Erro ao inserir cotacao',
+            detail: err.toString()
+        });
+    } finally {
+        if (connection) await connection.close();
+    }
+}
+
 async function excluirCotacao(req, res) {
     const {PDC_IN_CODIGO, FIL_IN_CODIGO, Itens} = req.body;
 
@@ -180,4 +228,4 @@ async function processarPedidosObra(cotacaoService, compra, Itens, compraService
     return cotInCodigo;
 }
 
-module.exports = {inserirCotacao, excluirCotacao, buscarCotacao};
+module.exports = {inserirCotacao, excluirCotacao, buscarCotacao, validarCotacao};

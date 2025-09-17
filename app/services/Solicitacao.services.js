@@ -45,7 +45,9 @@ class SolicitacaoServices {
                    solicitacao.SOL_IN_CODIGO,
                    solicitacao.SOI_IN_CODIGO,
                    SOL_CH_ORIGEM,
-                   FIL_IN_CODIGO
+                   FIL_IN_CODIGO,
+                   COT_IN_CODIGO,
+                   COI_IN_CODIGO
             FROM EST_ITENSSOLI solicitacao
                      join EST_SOLICITACAO ES
                           on solicitacao.ORG_TAB_IN_CODIGO = ES.ORG_TAB_IN_CODIGO

@@ -164,15 +164,22 @@ async function excluirCotacao(req, res) {
         }
         const cotInCodigo = compra.COTACAO;
         for (const item of Itens) {
+            let atualizarStatus = true;
             const solicitacao = await solicitacaoService.buscarItemSolicitacao(item.solicitacao);
             if (cotInCodigo) {
-                const compraItem = await compraServices.buscarItensDaCompra(compra, item.ITP_IN_SEQUENCIA);
-                await cotacaoService.excluirVinculoSolicitacaoPedido(compraItem);
-                await cotacaoService.atualizarVinculoComCompraItem(solicitacao);
-                await cotacaoService.excluirVinculoItemCotacao(compraItem, cotInCodigo);
-                await cotacaoService.excluirItemCotacao(compraItem, cotInCodigo);
+                try {
+                    const compraItem = await compraServices.buscarItensDaCompra(compra, item.ITP_IN_SEQUENCIA);
+                    await cotacaoService.excluirVinculoSolicitacaoPedido(compraItem);
+                    await cotacaoService.atualizarVinculoComCompraItem(solicitacao);
+                    await cotacaoService.excluirVinculoItemCotacao(compraItem, cotInCodigo);
+                    await cotacaoService.excluirItemCotacao(compraItem, cotInCodigo);
+                } catch (e) {
+                    atualizarStatus = false;
+                }
             }
-            await solicitacaoService.atualizarStatusItemSolicitacao(solicitacao, item.solicitacao);
+            if (atualizarStatus) {
+                await solicitacaoService.atualizarStatusItemSolicitacao(solicitacao, item.solicitacao);
+            }
         }
         if (cotInCodigo) {
             await cotacaoService.excluirCotacaoMega(compra, cotInCodigo);
